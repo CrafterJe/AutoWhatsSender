@@ -18,7 +18,7 @@ Haz clic en el siguiente enlace para descargar el ejecutable:
 1. **Descarga el archivo** `.rar` del enlace de arriba.
 2. **Extrae el contenido** en una carpeta de tu computadora.
 3. **Abre WhatsApp en tu PC** y asegúrate de estar logueado en tu cuenta.
-4. **Ejecuta `WhatsApp-Bot-GUI.exe`**.
+4. **Ejecuta `AutoWhatsSender.exe`**.
 
 ## 🔧 Características
 
