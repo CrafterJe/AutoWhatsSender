@@ -8,7 +8,9 @@ from threading import Thread
 import keyboard
 import threading
 import os
+import sys
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Archivo de configuración
 CONFIG_FILE = "config.json"
 
@@ -193,15 +195,47 @@ def actualizar_intervalo(valor):
     guardar_configuracion(config)
     label_intervalo.config(text=f"Intervalo actual: {intervalo:.2f}s")
 
+# Detectar si se está ejecutando como un .exe con PyInstaller
+if getattr(sys, 'frozen', False):
+    BASE_DIR = sys._MEIPASS
+else:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Rutas absolutas para los íconos
+ruta_icono = os.path.join(BASE_DIR, "bot-icon.ico")
+ruta_icono_png = os.path.join(BASE_DIR, "bot-icon.png")
+
 # Crear la ventana principal
 ventana = tk.Tk()
 ventana.title("WhatsApp Bot By CrafterJe")
 ventana.geometry("400x500")
 
-ventana.iconbitmap("bot-icon.ico")
+# Configurar iconos de la ventana y la barra de tareas
+if os.path.exists(ruta_icono):
+    ventana.iconbitmap(ruta_icono)
+else:
+    print(f"⚠️ Advertencia: No se encontró {ruta_icono}")
 
-icono_tarea = PhotoImage(file="bot-icon.png")
-ventana.iconphoto(True, icono_tarea)
+if os.path.exists(ruta_icono_png):
+    icono_tarea = PhotoImage(file=ruta_icono_png)
+    ventana.iconphoto(True, icono_tarea)
+else:
+    print(f"⚠️ Advertencia: No se encontró {ruta_icono_png}")
+
+
+# Usar rutas absolutas para los iconos
+ruta_icono = os.path.join(BASE_DIR, "bot-icon.ico")
+ruta_icono_png = os.path.join(BASE_DIR, "bot-icon.png")
+
+# Establecer el ícono de la ventana (para la barra de título)
+if os.path.exists(ruta_icono):
+    ventana.iconbitmap(ruta_icono)
+
+# Establecer el ícono de la barra de tareas
+if os.path.exists(ruta_icono_png):
+    icono_tarea = PhotoImage(file=ruta_icono_png)
+    ventana.iconphoto(True, icono_tarea)
+
 
 tk.Label(ventana, text="Nombre del contacto:").pack(pady=5)
 entry_contacto = tk.Entry(ventana, width=40)
