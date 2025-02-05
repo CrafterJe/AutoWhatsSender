@@ -3,6 +3,7 @@ from pywinauto import Application, mouse
 import time
 import tkinter as tk
 from tkinter import messagebox
+from tkinter import PhotoImage
 from threading import Thread
 import keyboard
 import threading
@@ -64,6 +65,7 @@ def enviar_mensajes(nombre_contacto, mensaje, cantidad):
 
         if window.exists():
             print("La ventana de WhatsApp está activa.")
+            window.maximize()
 
             window.click_input(double=True)
             time.sleep(1)
@@ -102,8 +104,21 @@ def mostrar_contador():
 
     ventana_contador = tk.Toplevel()
     ventana_contador.title("Contador de mensajes")
-    ventana_contador.geometry("300x100")
     ventana_contador.attributes('-topmost', True)
+
+    # Obtener el tamaño de la pantalla
+    ancho_pantalla = ventana_contador.winfo_screenwidth()
+    alto_pantalla = ventana_contador.winfo_screenheight()
+
+    # Definir tamaño de la ventana del contador
+    ancho_ventana = 250
+    alto_ventana = 80
+
+    # Calcular la posición en la esquina superior derecha
+    x = ancho_pantalla - ancho_ventana - 20  # 20px de margen
+    y = 20  # 20px desde la parte superior
+
+    ventana_contador.geometry(f"{ancho_ventana}x{alto_ventana}+{x}+{y}")
 
     label_contador = tk.Label(ventana_contador, text="Mensajes enviados: 0", font=("Arial", 14))
     label_contador.pack(pady=20)
@@ -116,6 +131,7 @@ def mostrar_contador():
             ventana_contador.destroy()
 
     actualizar_contador()
+
 
 # Función para configurar el atajo de teclado
 def configurar_atajo():
@@ -133,6 +149,10 @@ def configurar_atajo():
         atajo_cierre = f"{modificador}{tecla}"
         config["atajo_cierre"] = atajo_cierre
         guardar_configuracion(config)
+
+        # ACTUALIZAR EL LABEL CON EL NUEVO ATAJO
+        label_atajo.config(text=f"Atajo de pausa: {atajo_cierre}")
+
         messagebox.showinfo("Configuración", f"Atajo guardado: {atajo_cierre}")
         ventana_config.destroy()
 
@@ -165,25 +185,23 @@ def escuchar_atajo():
             ejecutando = False
             messagebox.showinfo("Bot detenido", "Se ha detenido el envío de mensajes.")
 
-# Función para actualizar el intervalo desde la interfaz
-def actualizar_intervalo():
+# Función para actualizar el intervalo desde el slider
+def actualizar_intervalo(valor):
     global intervalo
-    try:
-        nuevo_intervalo = float(entry_intervalo.get())
-        if 0.1 <= nuevo_intervalo <= 1.0:
-            intervalo = nuevo_intervalo
-            config["intervalo"] = intervalo
-            guardar_configuracion(config)
-            messagebox.showinfo("Configuración", f"Intervalo actualizado a {intervalo} segundos.")
-        else:
-            messagebox.showerror("Error", "El intervalo debe estar entre 0.1 y 1.0 segundos.")
-    except ValueError:
-        messagebox.showerror("Error", "Ingresa un valor numérico válido para el intervalo.")
+    intervalo = float(valor)
+    config["intervalo"] = intervalo
+    guardar_configuracion(config)
+    label_intervalo.config(text=f"Intervalo actual: {intervalo:.2f}s")
 
 # Crear la ventana principal
 ventana = tk.Tk()
-ventana.title("WhatsApp Bot")
+ventana.title("WhatsApp Bot By CrafterJe")
 ventana.geometry("400x500")
+
+ventana.iconbitmap("bot-icon.ico")
+
+icono_tarea = PhotoImage(file="bot-icon.png")
+ventana.iconphoto(True, icono_tarea)
 
 tk.Label(ventana, text="Nombre del contacto:").pack(pady=5)
 entry_contacto = tk.Entry(ventana, width=40)
@@ -199,11 +217,17 @@ entry_cantidad.pack(pady=5)
 
 tk.Button(ventana, text="Iniciar", command=iniciar_script).pack(pady=10)
 
-tk.Label(ventana, text="Intervalo de envío (0.1ms - 1.0s):").pack(pady=5)
-entry_intervalo = tk.Entry(ventana, width=10)
-entry_intervalo.insert(0, str(intervalo))
-entry_intervalo.pack(pady=5)
-tk.Button(ventana, text="Aplicar intervalo", command=actualizar_intervalo).pack(pady=10)
+# Slider para intervalo
+tk.Label(ventana, text="Intervalo de envío (segundos):").pack(pady=5)
+scale_intervalo = tk.Scale(ventana, from_=0.1, to=1.0, resolution=0.05, orient="horizontal", length=300, command=actualizar_intervalo)
+scale_intervalo.set(intervalo)
+scale_intervalo.pack(pady=5)
+label_intervalo = tk.Label(ventana, text=f"Intervalo actual: {intervalo:.2f}s")
+label_intervalo.pack(pady=5)
+
+# Atajo de teclado
+label_atajo = tk.Label(ventana, text=f"Atajo de pausa: {atajo_cierre}")
+label_atajo.pack(pady=10)
 
 tk.Button(ventana, text="Configuración de atajo", command=configurar_atajo).pack(pady=10)
 
