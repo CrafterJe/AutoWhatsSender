@@ -1,0 +1,29 @@
+{
+  "name": "autowhatssender",
+  "version": "1.0.0",
+  "description": "Bot para WhatsApp Web con interfaz gráfica",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": [
+    "whatsapp",
+    "bot",
+    "electron",
+    "puppeteer"
+  ],
+  "author": "CrafterJe",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "prompt-sync": "^4.2.0",
+    "puppeteer": "^24.4.0",
+    "puppeteer-core": "^24.4.0",
+    "qrcode": "^1.5.4",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.27.0"
+  },
+  "devDependencies": {
+    "electron": "^35.1.1"
+  }
+}

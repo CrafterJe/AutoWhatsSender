@@ -1,0 +1,24 @@
+# Node modules
+node_modules/
+
+# Output folders
+dist/
+build/
+
+# Logs
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Compressed files
+*.rar
+*.zip
+
+# Electron binaries
+*.exe
+*.dll
+
+# Puppeteer local Chromium
+.local-chromium/
