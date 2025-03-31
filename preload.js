@@ -10,4 +10,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     onAuthenticated: (callback) => ipcRenderer.on('authenticated', callback),
     onContactosListos: (callback) => ipcRenderer.on('contactos-listos', callback),
     enviarMensaje: (numero, mensaje) => ipcRenderer.invoke('enviar-mensaje', numero, mensaje),
+    enviarMultiplesMensajes: (numero, mensaje, cantidad) =>
+        ipcRenderer.invoke('enviar-multiples-mensajes', numero, mensaje, cantidad),    
 });

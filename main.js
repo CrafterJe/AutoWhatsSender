@@ -101,8 +101,8 @@ async function verificarSesionWhatsApp() {
 
             client.on('ready', async () => {
                 if (!resultSent) {
-                    resultSent = true;
                     console.log('✅✅✅ CLIENTE LISTO - Enviando señal session-active');
+                    resultSent = true;
                     isClientReady = true;
                     console.log('✅ Sesión iniciada');
                     mainWindow.webContents.send('session-active');
@@ -244,6 +244,7 @@ app.whenReady().then(() => {
     ipcMain.handle('obtener-contactos', async () => {
         return await obtenerContactos();
     });
+    
 });
 
 // ✉️ Handler para enviar mensajes (FUERA de verificarSesionWhatsApp)
@@ -328,6 +329,92 @@ ipcMain.handle('enviar-mensaje', async (event, numero, mensaje) => {
         };
     }
 });
+
+// Modifica la función enviar-multiples-mensajes en main.js
+ipcMain.handle('enviar-multiples-mensajes', async (event, numero, mensaje, cantidad) => {
+    console.log(`🔄 Intentando enviar ${cantidad} mensajes a ${numero}...`);
+    
+    try {
+        if (!client) {
+            throw new Error('Cliente WhatsApp no inicializado');
+        }
+
+        // Verificación robusta del estado del cliente
+        const esperarClienteListo = async () => {
+            if (isClientReady && client?.isReady) {
+                console.log('✅ Cliente ya estaba listo');
+                return;
+            }
+
+            console.log('🕒 Esperando a que el cliente esté completamente listo...');
+            let attempts = 0;
+            const maxAttempts = 60; // Hasta 30 segundos
+
+            return new Promise((resolve, reject) => {
+                const interval = setInterval(async () => {
+                    attempts++;
+                    if (isClientReady && client.isReady) {
+                        clearInterval(interval);
+                        console.log('✅ Cliente listo después de espera');
+                        resolve();
+                    } else if (attempts >= maxAttempts) {
+                        clearInterval(interval);
+
+                        // Intento forzado adicional
+                        try {
+                            console.log('⚠️ Intentando obtener contactos como verificación forzada...');
+                            await client.getContacts();
+                            console.log('✅ Cliente forzado a estar activo vía getContacts()');
+                            resolve();
+                        } catch (error) {
+                            reject(new Error('Cliente no completamente listo tras verificación forzada'));
+                        }
+                    }
+                }, 500);
+            });
+        };
+
+        await esperarClienteListo();
+
+        console.log('📱 Cliente listo, enviando mensajes...');
+        const chatId = `${numero}@c.us`;
+        const resultados = [];
+
+        for (let i = 0; i < cantidad; i++) {
+            const result = await client.sendMessage(chatId, mensaje);
+            resultados.push(result?.id?._serialized || 'unknown');
+
+            // Pausa para evitar rate limiting
+            await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 500));
+
+            if (i % 5 === 0 || i === cantidad - 1) {
+                console.log(`📩 Progreso: ${i + 1}/${cantidad} mensajes enviados`);
+            }
+        }
+
+        return { 
+            ok: true, 
+            count: resultados.length,
+            messageIds: resultados
+        };
+    } catch (error) {
+        console.error('❌ Error detallado al enviar múltiples mensajes:', {
+            errorMessage: error.message,
+            errorStack: error.stack,
+            clientState: client ? {
+                isClientReadyFlag: isClientReady,
+                isReadyProperty: client?.isReady,
+                state: client?.state || 'unknown'
+            } : 'No client'
+        });
+
+        return { 
+            ok: false, 
+            error: error.message || 'Error desconocido al enviar mensajes' 
+        };
+    }
+});
+
 
 // 🧹 Limpieza al cerrar
 app.on('window-all-closed', () => {

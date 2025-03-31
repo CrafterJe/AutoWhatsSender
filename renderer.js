@@ -1,3 +1,10 @@
+let sesionConfirmada = false;
+
+window.electronAPI.onSessionActive(() => {
+    console.log('🟢 Evento session-active recibido fuera del DOM');
+    sesionConfirmada = true;
+});
+
 document.addEventListener('DOMContentLoaded', async () => {
     const QRCode = window.QRCode;
     const statusElemento = document.getElementById('status');
@@ -20,6 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     let contactosGlobal = [];
     let contactoSeleccionado = null;
+    
 
     try {
         const resultado = await window.electronAPI.verificarSesion();
@@ -136,40 +144,69 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Enviar mensaje
     btnEnviarMensaje.addEventListener('click', async () => {
         const mensaje = inputMensaje.value.trim();
-
-        if (!contactoSeleccionado || !mensaje) {
-            mensajeStatus.textContent = '⚠️ Selecciona un contacto y escribe un mensaje.';
+        const cantidad = parseInt(document.getElementById('cantidad-mensajes').value, 10);
+    
+        if (!contactoSeleccionado || !mensaje || !cantidad || cantidad < 1) {
+            mensajeStatus.textContent = '⚠️ Selecciona un contacto, escribe un mensaje y una cantidad válida.';
             mensajeStatus.style.color = 'orange';
             return;
         }
-
-        mensajeStatus.textContent = 'Enviando...';
-        mensajeStatus.style.color = 'gray';
-
+    
+        mensajeStatus.textContent = '⏳ Enviando mensajes...';
+        mensajeStatus.style.color = 'blue';
+        document.getElementById('loading-icon').style.display = 'block';
+        btnEnviarMensaje.disabled = true;
+    
+        const progressElement = document.createElement('div');
+        progressElement.style.marginTop = '10px';
+        progressElement.textContent = 'Inicializando...';
+        mensajeStatus.appendChild(progressElement);
+    
         try {
-            const resultado = await window.electronAPI.enviarMensaje(contactoSeleccionado.number, mensaje);
-            mensajeStatus.textContent = resultado.ok ? '✅ Mensaje enviado correctamente' : `❌ ${resultado.error}`;
-            mensajeStatus.style.color = resultado.ok ? 'green' : 'red';
+            
+            if (!sesionConfirmada) {
+                throw new Error('La sesión no está completamente iniciada');
+            }
+    
+            progressElement.textContent = 'Conectando con WhatsApp...';
+            const resultado = await window.electronAPI.enviarMultiplesMensajes(
+                contactoSeleccionado.number, mensaje, cantidad
+            );
+    
+            if (resultado.ok) {
+                mensajeStatus.textContent = `✅ Se enviaron ${cantidad} mensajes correctamente`;
+                mensajeStatus.style.color = 'green';
+            } else {
+                mensajeStatus.innerHTML = `❌ Error: ${resultado.error}<br><small>Intenta escanear nuevamente el código QR o reiniciar la aplicación</small>`;
+                mensajeStatus.style.color = 'red';
+            }
         } catch (err) {
-            console.error('Error al enviar mensaje:', err);
-            mensajeStatus.textContent = '❌ Error al enviar mensaje';
+            console.error('Error al enviar mensajes:', err);
+            mensajeStatus.innerHTML = `❌ Error: ${err.message || 'Error inesperado'}<br><small>Es posible que necesites reiniciar la aplicación</small>`;
             mensajeStatus.style.color = 'red';
+        } finally {
+            document.getElementById('loading-icon').style.display = 'none';
+            btnEnviarMensaje.disabled = false;
+            if (progressElement.parentNode) {
+                progressElement.parentNode.removeChild(progressElement);
+            }
         }
     });
+    
+    
 
     // Sesión activa
     window.electronAPI.onSessionActive(() => {
-        console.log('🟢 Evento session-active recibido');
+        console.log('🟢 Evento session-active recibido (UI)');
         statusElemento.textContent = '✅ ¡Sesión iniciada correctamente!';
         statusElemento.style.color = 'green';
         spinner.style.display = 'none';
         qrContainer.innerHTML = '<p style="color: green;">QR escaneado. Bot listo.</p>';
-        
-        // Mostrar sección de mensaje y ocultar loading
         mensajeContainer.style.display = 'block';
         loadingIcon.style.display = 'none';
         btnEnviarMensaje.disabled = false;
     });
+     
 
     window.electronAPI.onAuthenticated((event, sessionInfo) => {
         console.log('🔐 Evento authenticated recibido', sessionInfo);
