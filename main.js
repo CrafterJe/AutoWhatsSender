@@ -110,22 +110,37 @@ async function verificarSesionWhatsApp() {
                         mensaje: 'Sesión de WhatsApp Web ya iniciada'
                     });
                 }
-
+            
                 try {
                     const contactos = await client.getContacts();
-                    const contactosFormateados = contactos.map(c => ({
+            
+                    const numerosVistos = new Set();
+                    const contactosFormateados = contactos
+                    .filter(c => {
+                        const num = c?.id?.user;
+                        const serial = c?.id?._serialized || '';
+                        const esValido = /^[0-9]{10,15}$/.test(num) &&
+                                         !num.startsWith('100') &&
+                                         serial.endsWith('@c.us');
+                        return esValido && !numerosVistos.has(num) && numerosVistos.add(num);
+                    })
+                    .map(c => ({
+                        id: c.id._serialized, // ✅ Incluirlo para que renderer.js pueda validarlo
                         name: c.name || c.pushname || '(Sin nombre)',
                         number: c.id.user,
                         isMe: c.isMe || false,
                         isBlocked: c.isBlocked || false,
                         isBusiness: c.isBusiness || false
                     }));
+                
+            
+                    console.log(`📲 Enviando ${contactosFormateados.length} contactos filtrados`);
                     mainWindow.webContents.send('contactos-listos', contactosFormateados);
                 } catch (error) {
                     console.error('❌ Error al obtener contactos:', error);
                     mainWindow.webContents.send('contactos-listos', []);
                 }
-            });
+            });            
 
             client.on('qr', (qr) => {
                 isClientReady = false;

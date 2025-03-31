@@ -22,3 +22,7 @@ Thumbs.db
 
 # Puppeteer local Chromium
 .local-chromium/
+
+# Ignorar carpeta de sesión local
+sesion1/
+.wwebjs_cache/

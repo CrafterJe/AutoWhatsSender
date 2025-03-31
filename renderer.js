@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.electronAPI.onContactosListos((event, contactos) => {
         contactosContainer.innerHTML = '';
         contactosGlobal = [];
-
+    
         if (!contactos || contactos.length === 0) {
             contactosContainer.innerHTML = `
                 <div style="text-align: center; color: gray; margin-top: 20px;">
@@ -41,22 +41,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             `;
             return;
         }
-
+    
         const contactosFiltrados = [];
         const numerosVistos = new Set();
-
+    
         for (const contacto of contactos) {
             const numero = contacto.number;
-            const esValido = /^[0-9]{10,15}$/.test(numero) && !numero.startsWith('100');
-
+            const idSerializado = contacto.id || ''; // 🔧 CORREGIDO
+    
+            const esValido = /^[0-9]{10,15}$/.test(numero)
+                          && !numero.startsWith('100')
+                          && idSerializado.endsWith('@c.us'); // Solo contactos reales
+    
             if (!esValido || numerosVistos.has(numero)) continue;
-
+    
             numerosVistos.add(numero);
             contactosFiltrados.push(contacto);
         }
-
+    
         contactosGlobal = contactosFiltrados;
-
+    
         // Mostrar tabla
         const tablaContactos = document.createElement('table');
         tablaContactos.innerHTML = `
@@ -83,6 +87,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         `;
         contactosContainer.appendChild(tablaContactos);
     });
+    
+    
 
     // Búsqueda de contactos
     inputBusqueda.addEventListener('input', () => {
