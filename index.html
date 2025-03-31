@@ -3,102 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <title>WhatsApp Bot</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
-            background-color: #f0f2f5;
-        }
-
-        h2 {
-            margin-bottom: 10px;
-        }
-
-        #status {
-            margin-top: 20px;
-            font-weight: bold;
-        }
-
-        #spinner {
-            display: none;
-            margin-top: 10px;
-            font-size: 14px;
-            color: gray;
-        }
-
-        #qr-container {
-            margin-top: 20px;
-        }
-
-        /* Nuevos estilos para contactos */
-        #contactos-container {
-            margin-top: 30px;
-            text-align: left;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        #contactos-container table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        #contactos-container th, 
-        #contactos-container td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: left;
-        }
-
-        #contactos-container th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-        }
-
-        #contactos-container tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-
-        #contactos-container tr:hover {
-            background-color: #f5f5f5;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://kit.fontawesome.com/761a6d5d39.js" crossorigin="anonymous"></script>
 </head>
 <body>
     <h2>WhatsApp Bot</h2>
     <p>El sistema está verificando tu sesión de WhatsApp Web.</p>
 
     <p id="status">Esperando verificación...</p>
+
+    <!-- Icono de carga animado -->
+    <div id="loading-icon">
+        <i class="fa-solid fa-circle-notch fa-spin"></i>
+    </div>
+
     <div id="spinner">Verificando sesión...</div>
 
     <div id="qr-container"></div>
 
-    <!-- Envío de mensaje -->
-    <div id="mensaje-container" style="margin-top: 30px;">
+    <!-- Envio de mensaje -->
+    <div id="mensaje-container">
         <h3>Enviar mensaje de prueba</h3>
-    
+
         <input type="text" id="buscador-contacto" placeholder="Buscar contacto por nombre o número..." style="padding: 8px; width: 300px;" />
         <ul id="lista-contactos" style="list-style: none; padding: 0; max-height: 150px; overflow-y: auto; margin-top: 10px; border: 1px solid #ccc;"></ul>
-        
+
         <p id="destinatario-seleccionado" style="margin-top: 10px; color: green;"></p>
-    
+
         <textarea id="mensaje-texto" placeholder="Escribe tu mensaje aquí..." rows="4" cols="40" style="resize: none;"></textarea>
         <br><br>
         <button id="btn-enviar-mensaje" style="padding: 10px 20px;">Enviar mensaje</button>
         <p id="mensaje-status" style="margin-top: 10px; font-weight: bold;"></p>
     </div>
-    
 
-    <!-- Nuevo contenedor de contactos -->
+    <!-- Contenedor de contactos -->
     <div id="contactos-container"></div>
 
-    <!-- Librería QR -->
+    <!-- Libreria QR -->
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
-    <!-- Script principal -->
     <script src="renderer.js"></script>
 </body>
 </html>

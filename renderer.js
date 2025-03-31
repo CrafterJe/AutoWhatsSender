@@ -10,8 +10,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnEnviarMensaje = document.getElementById('btn-enviar-mensaje');
     const mensajeStatus = document.getElementById('mensaje-status');
     const destinatarioSeleccionado = document.getElementById('destinatario-seleccionado');
+    const mensajeContainer = document.getElementById('mensaje-container');
+    const loadingIcon = document.getElementById('loading-icon');
 
-    spinner.style.display = 'block';
+    // Ocultar por defecto
+    mensajeContainer.style.display = 'none';
+    loadingIcon.style.display = 'inline-block';
+    spinner.style.display = 'block';  
 
     let contactosGlobal = [];
     let contactoSeleccionado = null;
@@ -20,10 +25,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         const resultado = await window.electronAPI.verificarSesion();
         statusElemento.textContent = resultado.mensaje;
         statusElemento.style.color = resultado.sesionActiva ? 'green' : 'orange';
+        
+        // Si la sesión ya está activa, mostrar el contenedor de mensajes y ocultar el icono de carga
+        if (resultado.sesionActiva) {
+            mensajeContainer.style.display = 'block';
+            loadingIcon.style.display = 'none';
+            btnEnviarMensaje.disabled = false;
+        }
     } catch (error) {
         statusElemento.textContent = 'Error al verificar sesión';
         statusElemento.style.color = 'red';
         console.error(error);
+        loadingIcon.style.display = 'none'; // Ocultar también en caso de error
     } finally {
         spinner.style.display = 'none';
     }
@@ -60,9 +73,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     
         contactosGlobal = contactosFiltrados;
+        
+        // Asegurarse de que el contenedor de mensajes esté visible cuando los contactos están listos
+        mensajeContainer.style.display = 'block';
+        loadingIcon.style.display = 'none';
     
-        // Mostrar tabla
-        const tablaContactos = document.createElement('table');
+        // Comentado el código de la tabla como estaba originalmente
+        /*const tablaContactos = document.createElement('table');
         tablaContactos.innerHTML = `
             <thead>
                 <tr>
@@ -85,7 +102,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 `).join('')}
             </tbody>
         `;
-        contactosContainer.appendChild(tablaContactos);
+        contactosContainer.appendChild(tablaContactos);*/
     });
     
     
@@ -142,17 +159,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Sesión activa
     window.electronAPI.onSessionActive(() => {
+        console.log('🟢 Evento session-active recibido');
         statusElemento.textContent = '✅ ¡Sesión iniciada correctamente!';
         statusElemento.style.color = 'green';
         spinner.style.display = 'none';
         qrContainer.innerHTML = '<p style="color: green;">QR escaneado. Bot listo.</p>';
+        
+        // Mostrar sección de mensaje y ocultar loading
+        mensajeContainer.style.display = 'block';
+        loadingIcon.style.display = 'none';
         btnEnviarMensaje.disabled = false;
     });
 
     window.electronAPI.onAuthenticated((event, sessionInfo) => {
+        console.log('🔐 Evento authenticated recibido', sessionInfo);
         statusElemento.textContent = '🔐 ¡Autenticación exitosa!';
         statusElemento.style.color = 'green';
         qrContainer.innerHTML = '<p style="color: green;">Autenticado correctamente</p>';
+        loadingIcon.style.display = 'none'; // Asegurarse de ocultar el ícono de carga
+        mensajeContainer.style.display = 'block'; // Mostrar el contenedor de mensajes
         console.log('Información de sesión:', sessionInfo);
     });
 
@@ -187,12 +212,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         spinner.style.display = 'none';
         qrContainer.innerHTML = '<p style="color: red;">Error de sesión</p>';
         btnEnviarMensaje.disabled = true;
+        mensajeContainer.style.display = 'none';
+        loadingIcon.style.display = 'none'; // Asegurarse de ocultar el ícono de carga
         console.error('Session Error:', error);
     });
 
     window.electronAPI.onSessionDisconnected((event, reason) => {
         statusElemento.textContent = 'Sesión desconectada';
         statusElemento.style.color = 'orange';
+        mensajeContainer.style.display = 'none';
+        loadingIcon.style.display = 'none'; // Asegurarse de ocultar el ícono de carga
         console.log('Desconexión:', reason);
     });
 });

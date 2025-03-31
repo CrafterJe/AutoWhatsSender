@@ -102,6 +102,7 @@ async function verificarSesionWhatsApp() {
             client.on('ready', async () => {
                 if (!resultSent) {
                     resultSent = true;
+                    console.log('✅✅✅ CLIENTE LISTO - Enviando señal session-active');
                     isClientReady = true;
                     console.log('✅ Sesión iniciada');
                     mainWindow.webContents.send('session-active');
